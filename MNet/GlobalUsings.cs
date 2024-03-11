@@ -7,3 +7,4 @@ global using System.Diagnostics.CodeAnalysis;
 global using System.Net.Sockets;
 global using System.Threading.Tasks.Sources;
 global using System.IO.Pipelines;
+global using System.Buffers;
