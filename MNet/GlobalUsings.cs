@@ -10,3 +10,6 @@ global using System.IO.Pipelines;
 global using System.Buffers;
 global using System.Collections.Concurrent;
 global using System.Net;
+
+global using MNet.Tcp;
+global using MNet.Sockets;
