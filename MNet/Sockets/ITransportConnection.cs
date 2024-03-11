@@ -7,10 +7,6 @@ public interface ITransportConnection {
 
     public EndPoint? RemoteEndPoint { get; }
 
-    public void Write(ReadOnlySequence<byte> buffer) {
-        Transport.Output.Write(buffer);
-    }
-
     public ValueTask<FlushResult> FlushAsync() {
 
         return Transport.Output.FlushAsync();

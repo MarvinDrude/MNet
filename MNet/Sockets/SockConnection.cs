@@ -1,6 +1,4 @@
 ﻿
-using System.Net.Sockets;
-
 namespace MNet.Sockets;
 
 // taken from kestrel internal sockets
