@@ -8,3 +8,4 @@ global using System.Net.Sockets;
 global using System.Threading.Tasks.Sources;
 global using System.IO.Pipelines;
 global using System.Buffers;
+global using System.Collections.Concurrent;

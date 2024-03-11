@@ -65,6 +65,7 @@ internal sealed class SockSender(PipeScheduler ioScheduler)
             : new ValueTask<SockOperationResult>(new SockOperationResult(CreateException(error)));
 
     }
+
     private void SetBufferList(in ReadOnlySequence<byte> buffer) {
 
         Debug.Assert(!buffer.IsEmpty);
