@@ -1,10 +1,5 @@
 ﻿
-using System.Buffers;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-namespace MNet.Sockets;
+namespace MNet.Extensions;
 
 internal static class BufferExtensions {
 
@@ -25,3 +20,4 @@ internal static class BufferExtensions {
     }
 
 }
+

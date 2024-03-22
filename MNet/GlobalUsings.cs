@@ -6,10 +6,14 @@ global using System.Threading.Tasks;
 global using System.Diagnostics.CodeAnalysis;
 global using System.Net.Sockets;
 global using System.Threading.Tasks.Sources;
-global using System.IO.Pipelines;
 global using System.Buffers;
 global using System.Collections.Concurrent;
 global using System.Net;
+global using System.Runtime.InteropServices;
+global using System.IO.Pipelines;
+global using System.Buffers.Binary;
+global using System.Security.Cryptography;
 
 global using MNet.Tcp;
-global using MNet.Sockets;
+global using MNet.Extensions;
+global using MNet.Helpers;
