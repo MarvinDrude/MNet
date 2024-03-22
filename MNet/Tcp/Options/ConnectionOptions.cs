@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Tcp.Options;
 
-public class ConnectionOptions {
+public abstract class ConnectionOptions {
 
     /// <summary>
     /// Defaults to processor count but max 16
@@ -17,5 +17,7 @@ public class ConnectionOptions {
     /// Max outgoing buffer size before applying write backpressure
     /// </summary>
     public long? MaxWriteBufferSize { get; set; } = 64 * 1024;
+
+    internal abstract ConnectionQueueSettings CreateQueueSettings();
 
 }

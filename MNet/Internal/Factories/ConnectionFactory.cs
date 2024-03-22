@@ -22,11 +22,20 @@ internal class ConnectionFactory<TOptions, TSettings> : IDisposable
         _SettingsIndex = 0;
 
         _Settings = new TSettings[_SettingsCount];
+        InitSettings();
+        
+    }
+
+    private void InitSettings() {
 
         var maxReadBufferSize = _Options.MaxReadBufferSize ?? 0;
         var maxWriteBufferSize = _Options.MaxWriteBufferSize ?? 0;
 
+        for(int e = 0; e < _SettingsCount; e++) {
 
+
+
+        }
 
     }
 
