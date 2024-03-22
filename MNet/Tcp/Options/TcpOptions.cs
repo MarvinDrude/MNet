@@ -1,7 +1,29 @@
 ﻿
+using Serilog;
+using Serilog.Core;
+using Serilog.Sinks.SystemConsole.Themes;
+
 namespace MNet.Tcp.Options;
 
 public class TcpOptions {
+
+    private static readonly Logger DefaultSerilogLogger;
+
+    private static readonly ILoggerFactory DefaultLoggerFactory;
+
+    static TcpOptions() {
+
+        DefaultSerilogLogger = new LoggerConfiguration()
+            .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+            .MinimumLevel.Information()
+            .CreateLogger();
+
+        DefaultLoggerFactory = new LoggerFactory([], new LoggerFilterOptions() { 
+                MinLevel = LogLevel.Information
+            })
+            .AddSerilog(DefaultSerilogLogger);
+
+    }
 
     public required string Address { get; set; }
 
@@ -16,6 +38,11 @@ public class TcpOptions {
     public StreamConnectionOptions StreamConnectionOptions { get; set; } = new();
 
 
+
+    /// <summary>
+    /// Optionally set your own logger or get the default one
+    /// </summary>
+    public Microsoft.Extensions.Logging.ILogger? Logger { get; set; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
 
     /// <summary>
     /// Only used for internal testing
