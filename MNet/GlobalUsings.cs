@@ -13,6 +13,7 @@ global using System.Runtime.InteropServices;
 global using System.IO.Pipelines;
 global using System.Buffers.Binary;
 global using System.Security.Cryptography;
+global using System.Security.Cryptography.X509Certificates;
 
 global using MNet.Tcp;
 global using MNet.Extensions;
