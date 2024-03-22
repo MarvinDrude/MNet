@@ -30,6 +30,14 @@ server.On<ReadOnlyMemory<byte>>("test-bytes", (buffer, connection) => {
 
 });
 
+server.On<Test>("test-bytes", (message, connection) => {
+
+    if (message == null) return;
+
+    Console.WriteLine("A: " + message.A);
+
+});
+
 server.Start();
 server.Stop();
 server.Start();
@@ -38,4 +46,10 @@ server.Start();
 
 while (true) {
     await Task.Delay(100);
+}
+
+class Test {
+
+    public required string A { get; set; }
+
 }

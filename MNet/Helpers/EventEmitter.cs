@@ -26,7 +26,7 @@ public sealed class EventEmitter(ITcpSerializer serializer) {
         }
 
         bool isSerialize = true;
-        if(callbackParameters[0].ParameterType == typeof(ReadOnlySpan<byte>)) {
+        if(callbackParameters[0].ParameterType == typeof(ReadOnlyMemory<byte>)) {
             isSerialize = false;
         } else {
             ArgumentOutOfRangeException.ThrowIfNotEqual(callbackParameters[0].ParameterType.IsClass, true, "First parameter wrong type.");
@@ -47,11 +47,13 @@ public sealed class EventEmitter(ITcpSerializer serializer) {
             return Expression.Parameter(parameter.ParameterType, parameter.Name);
         }).ToArray();
 
-        MemberExpression memberFrameData = Expression.Property(parameters[0], nameof(ITcpFrame.Data));
+        ParameterExpression paraFrame = Expression.Parameter(typeof(ITcpFrame), "frame");
+
+        MemberExpression memberFrameData = Expression.Property(paraFrame, nameof(ITcpFrame.Data));
         MemberExpression memberFrameDataSpan = Expression.Property(memberFrameData, nameof(ReadOnlyMemory<byte>.Span));
 
         PropertyInfo dataProperty = typeof(ITcpFrame).GetProperty(nameof(ITcpFrame.Data))!;
-        MethodCallExpression dataCall = Expression.Call(parameters[0], dataProperty.GetGetMethod()!);
+        MethodCallExpression dataCall = Expression.Call(paraFrame, dataProperty.GetGetMethod()!);
 
         PropertyInfo dataSpanProperty = typeof(ReadOnlyMemory<byte>).GetProperty(nameof(ReadOnlyMemory<byte>.Span))!;
         MethodCallExpression dataSpanCall = Expression.Call(memberFrameData, dataSpanProperty.GetGetMethod()!);
@@ -76,7 +78,7 @@ public sealed class EventEmitter(ITcpSerializer serializer) {
                 Expression.Call(callbackInfo, resultFirstCall, parameters[1]);
 
             var action = Expression.Lambda<Action<ITcpFrame, TcpServerConnection>>
-                (callbackCall, parameters).Compile();
+                (callbackCall, paraFrame, parameters[1]).Compile();
 
             _HandlersServer.TryAdd(eventName, action);
 
@@ -87,7 +89,7 @@ public sealed class EventEmitter(ITcpSerializer serializer) {
                 Expression.Call(callbackInfo, resultFirstCall);
 
             var action = Expression.Lambda<Action<ITcpFrame>>
-                (callbackCall, parameters).Compile();
+                (callbackCall, paraFrame).Compile();
 
             _Handlers.TryAdd(eventName, action);
 

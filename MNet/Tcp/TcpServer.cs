@@ -96,14 +96,14 @@ public sealed class TcpServer : TcpBase, IDisposable {
     }
 
     public void On<T>(string identifier, ServerEventDelegate<T> handler) {
-        On(identifier, handler);
+        InternalOn<T>(identifier, handler);
     }
 
     public void On<T>(string identifier, ServerEventDelegateAsync<T> handler) {
-        On(identifier, handler);
+        InternalOn<T>(identifier, handler);
     }
 
-    private void On<T>(string identifier, Delegate handler) {
+    private void InternalOn<T>(string identifier, Delegate handler) {
 
         EventEmitter.On<T>(identifier, handler);
 

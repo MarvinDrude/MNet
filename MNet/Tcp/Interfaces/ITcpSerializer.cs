@@ -9,7 +9,7 @@ public interface ITcpSerializer {
     public ReadOnlyMemory<byte> SerializeAsMemory<T>(T target)
         where T : class;
 
-    public T? Deserialize<T>(Span<byte> source)
+    public T? Deserialize<T>(ReadOnlySpan<byte> source)
         where T : class;
 
 }

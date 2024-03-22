@@ -19,7 +19,7 @@ public sealed class TcpJsonSerializer : ITcpSerializer {
 
     private static readonly int InitialBufferSize = 1024 * 2;
 
-    public T? Deserialize<T>(Span<byte> source) where T : class {
+    public T? Deserialize<T>(ReadOnlySpan<byte> source) where T : class {
 
         return JsonSerializer.Deserialize<T>(source, JsonOptions);
 
