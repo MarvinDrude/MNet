@@ -25,37 +25,37 @@ public class TcpOptions {
 
     }
 
-    public required string Address { get; set; }
+    public required string Address { get; init; }
 
-    public required ushort Port { get; set; }
+    public required ushort Port { get; init; }
 
-    public bool IsSecure { get; set; } = false;
+    public bool IsSecure { get; init; } = false;
 
-    public int MaxHandshakeSizeBytes { get; set; } = 1024 * 2;
+    public int MaxHandshakeSizeBytes { get; init; } = 1024 * 2;
 
-    public SocketConnectionOptions SocketConnectionOptions { get; set; } = new();
+    public SocketConnectionOptions SocketConnectionOptions { get; init; } = new();
 
-    public StreamConnectionOptions StreamConnectionOptions { get; set; } = new();
+    public StreamConnectionOptions StreamConnectionOptions { get; init; } = new();
 
     /// <summary>
     /// Serializer for object sending, default is the tcp json serializer
     /// </summary>
-    public ITcpSerializer Serializer { get; set; } = new TcpJsonSerializer();
+    public ITcpSerializer Serializer { get; init; } = new TcpJsonSerializer();
 
     /// <summary>
     /// Frame factory, default is simple | len - id - len - body frame |
     /// </summary>
-    public ITcpFrameFactory FrameFactory { get; set; } = new TcpFrameFactory();
+    public ITcpFrameFactory FrameFactory { get; init; } = new TcpFrameFactory();
 
     /// <summary>
     /// Optionally set your own logger or get the default one
     /// </summary>
-    public Microsoft.Extensions.Logging.ILogger? Logger { get; set; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
+    public Microsoft.Extensions.Logging.ILogger? Logger { get; init; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
 
     /// <summary>
-    /// Only used for internal testing
+    /// Only used for internal testing, shouldn't be set in production!
     /// </summary>
-    internal TcpUnderlyingConnectionType ConnectionType { get; set; } = TcpUnderlyingConnectionType.Unset;
+    internal TcpUnderlyingConnectionType ConnectionType { get; init; } = TcpUnderlyingConnectionType.Unset;
 
 }
 

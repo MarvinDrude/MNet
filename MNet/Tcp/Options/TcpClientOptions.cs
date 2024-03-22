@@ -6,16 +6,16 @@ public sealed class TcpClientOptions : TcpOptions {
     /// <summary>
     /// Needed for secure authentication
     /// </summary>
-    public string? Host {  get; set; }
+    public string? Host {  get; init; }
 
     /// <summary>
     /// Default interval is 3 seconds
     /// </summary>
-    public TimeSpan ReconnectInterval { get; set; } = TimeSpan.FromSeconds(3);
+    public TimeSpan ReconnectInterval { get; init; } = TimeSpan.FromSeconds(3);
 
     /// <summary>
     /// Default handshaker just lets anyone connect and send valid messages
     /// </summary>
-    public ITcpClientHandshaker Handshaker { get; set; } = new TcpClientHandshaker();
+    public ITcpClientHandshaker Handshaker { get; init; } = new TcpClientHandshaker();
 
 }

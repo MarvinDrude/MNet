@@ -9,6 +9,8 @@ public sealed class TcpFrame : ITcpFrame {
 
     public bool IsRawOnly { get; set; } = false;
 
+    public bool IsSending { get; set; } = false;
+
     public Memory<byte> GetMemory() {
         throw new NotImplementedException();
     }
