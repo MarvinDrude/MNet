@@ -50,12 +50,12 @@ public class TcpOptions {
     /// <summary>
     /// Optionally set your own logger or get the default one
     /// </summary>
-    public Microsoft.Extensions.Logging.ILogger? Logger { get; init; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
+    public Microsoft.Extensions.Logging.ILogger Logger { get; init; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
 
     /// <summary>
     /// Only used for internal testing, shouldn't be set in production!
     /// </summary>
-    internal TcpUnderlyingConnectionType ConnectionType { get; init; } = TcpUnderlyingConnectionType.Unset;
+    public TcpUnderlyingConnectionType ConnectionType { get; init; } = TcpUnderlyingConnectionType.Unset;
 
 }
 

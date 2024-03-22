@@ -21,7 +21,7 @@ var server = new TcpServer(new TcpServerOptions() {
     Address = "127.0.0.1",
     Port = 43434,
     Logger = debugLogger,
-    
+    ConnectionType = TcpUnderlyingConnectionType.NetworkStream
 });
 
 

@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Internal.Factories;
 
-internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : IDisposable
+internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : IDisposable, IConnectionFactory
     where TOptions : ConnectionOptions
     where TSettings : ConnectionQueueSettings
     where TConnection : IDuplexPipe {
@@ -27,7 +27,7 @@ internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : ID
         
     }
 
-    public TConnection Create(Socket socket, Stream? stream) {
+    public IDuplexPipe Create(Socket socket, Stream? stream) {
 
         var setting = _Settings[Interlocked.Increment(ref _SettingsIndex) % _SettingsCount];
 

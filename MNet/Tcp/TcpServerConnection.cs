@@ -15,16 +15,38 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
     private bool _Disposed = false;
 
     public void Send<T>(string identifier, T payload) where T : class {
-        throw new NotImplementedException();
+
+        using var frame = Server.Options.FrameFactory.Create(); // dispose is ok here for sending
+
+        frame.IsRawOnly = false;
+        frame.IsSending = true;
+        
+        frame.Data = Server.Options.Serializer.SerializeAsMemory(payload);
+        OutgoingFramesQueue.Writer.TryWrite(frame);
+
     }
 
     public void Send(string identifier, Memory<byte> payload) {
-        throw new NotImplementedException();
+
+        using var frame = Server.Options.FrameFactory.Create(); // dispose is ok here for sending
+
+        frame.IsRawOnly = false;
+        frame.IsSending = true;
+
+        frame.Data = payload;
+        OutgoingFramesQueue.Writer.TryWrite(frame);
+
     }
 
     public void Send(Memory<byte> payload) {
 
-        using var frame = Server.
+        using var frame = Server.Options.FrameFactory.Create(); // dispose is ok here for sending
+
+        frame.IsRawOnly = true;
+        frame.IsSending = true;
+
+        frame.Data = payload;
+        OutgoingFramesQueue.Writer.TryWrite(frame);
 
     }
 

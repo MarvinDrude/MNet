@@ -5,7 +5,7 @@ public sealed class TcpFrame : ITcpFrame {
 
     public string? Identifier { get; set; }
 
-    public Memory<byte> Data { get; set; }
+    public ReadOnlyMemory<byte> Data { get; set; }
 
     public bool IsRawOnly { get; set; } = false;
 

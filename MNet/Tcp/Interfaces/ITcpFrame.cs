@@ -5,7 +5,7 @@ public interface ITcpFrame : IDisposable {
 
     public string? Identifier { get; set; }
 
-    public Memory<byte> Data { get; set; }
+    public ReadOnlyMemory<byte> Data { get; set; }
 
     /// <summary>
     /// When sending and this is true, only <see cref="Data"/> is sent raw.
