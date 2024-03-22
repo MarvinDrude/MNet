@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+namespace MNet.Tcp;
 
-namespace MNet.Tcp {
-    internal class TcpServer {
-    }
+public sealed class TcpServer : TcpBase {
 }
