@@ -1,14 +1,23 @@
 ﻿
 namespace MNet.Tcp;
 
-public sealed class TcpServer : TcpBase {
+public sealed class TcpServer : TcpBase, IDisposable {
 
     public TcpServerOptions Options { get; private set; }
 
     public ILogger Logger { get; private set; }
     public TcpUnderlyingConnectionType ConnectionType { get; private set; }
 
+    public int ConnectionCount {
+        get {
+            return _Connections.Count;
+        }
+    }
+
     private IConnectionFactory ConnectionFactory { get; set; } = default!;
+    private CancellationTokenSource? RunTokenSource { get; set; }
+
+    private readonly ConcurrentDictionary<string, TcpServerConnection> _Connections;
 
     public TcpServer(TcpServerOptions options) {
 
@@ -24,12 +33,80 @@ public sealed class TcpServer : TcpBase {
         EndPoint = new IPEndPoint(address, options.Port);
 
         Logger = Options.Logger;
+        _Connections = new ConcurrentDictionary<string, TcpServerConnection>();
 
         InitFactory();
         
     }
 
+    public void Start() {
 
+        if(RunTokenSource != null) {
+            return;
+        }
+
+        Logger.LogDebug("{Source} Starting the tcp server...", this);
+
+        RunTokenSource = new CancellationTokenSource();
+        BindSocket();
+
+
+
+        Logger.LogInformation("{Source} Server was started. {Endpoint}", this, EndPoint);
+
+    }
+
+    public void Stop() {
+
+        if(RunTokenSource == null) {
+            return;
+        }
+
+        Logger.LogDebug("{Source} Stopping the tcp server...", this);
+
+        _Connections.Clear();
+
+        RunTokenSource?.Cancel();
+        RunTokenSource?.Dispose();
+
+        RunTokenSource = null;
+
+        Logger.LogInformation("{Source} Server was stopped. {Endpoint}", this, EndPoint);
+
+    }
+
+    public async Task DoAccept() {
+
+
+
+    }
+
+
+
+    private void BindSocket() {
+
+        Socket listenSocket;
+        try {
+
+            listenSocket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+
+            listenSocket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+            listenSocket.NoDelay = true;
+
+            listenSocket.Bind(EndPoint);
+
+            Logger.LogDebug("{Source} Binding to following endpoint {Endpoint}", this, EndPoint);
+
+        } catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse) {
+
+            throw new Exception(e.Message, e);
+
+        }
+
+        Socket = listenSocket;
+        listenSocket.Listen();
+
+    }
 
     private void InitFactory() {
 
@@ -75,6 +152,12 @@ public sealed class TcpServer : TcpBase {
                 break;
 
         }
+
+    }
+
+    public void Dispose() {
+
+        ConnectionFactory?.Dispose();
 
     }
 

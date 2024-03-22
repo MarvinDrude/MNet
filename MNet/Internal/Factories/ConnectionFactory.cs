@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Internal.Factories;
 
-internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : IDisposable, IConnectionFactory
+internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : IConnectionFactory
     where TOptions : ConnectionOptions
     where TSettings : ConnectionQueueSettings
     where TConnection : IDuplexPipe {

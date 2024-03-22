@@ -24,7 +24,8 @@ var server = new TcpServer(new TcpServerOptions() {
     ConnectionType = TcpUnderlyingConnectionType.NetworkStream
 });
 
-
+server.Start();
+server.Stop();
 
 while(true) {
     await Task.Delay(100);
