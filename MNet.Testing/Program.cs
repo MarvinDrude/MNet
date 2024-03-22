@@ -24,9 +24,17 @@ var server = new TcpServer(new TcpServerOptions() {
     ConnectionType = TcpUnderlyingConnectionType.NetworkStream
 });
 
+server.On<ReadOnlyMemory<byte>>("test-bytes", (buffer, connection) => {
+
+    Console.WriteLine("Length: " + buffer.Length);
+
+});
+
 server.Start();
 server.Stop();
 server.Start();
+
+
 
 while (true) {
     await Task.Delay(100);

@@ -17,6 +17,7 @@ global using System.Security.Cryptography.X509Certificates;
 global using System.Runtime.CompilerServices;
 global using System.Threading.Channels;
 global using System.Net.Security;
+global using System.Security.Authentication;
 
 global using Microsoft.Extensions.Logging;
 

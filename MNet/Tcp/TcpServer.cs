@@ -1,6 +1,4 @@
 ﻿
-using System.Security.Authentication;
-
 namespace MNet.Tcp;
 
 public sealed class TcpServer : TcpBase, IDisposable {
@@ -24,6 +22,7 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
     private IConnectionFactory ConnectionFactory { get; set; } = default!;
     private CancellationTokenSource? RunTokenSource { get; set; }
+    private EventEmitter EventEmitter { get; set; }
 
     private readonly ConcurrentDictionary<string, TcpServerConnection> _Connections;
 
@@ -42,6 +41,8 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
         Logger = Options.Logger;
         _Connections = new ConcurrentDictionary<string, TcpServerConnection>();
+
+        EventEmitter = new EventEmitter(Options.Serializer);
 
         InitFactory();
         
@@ -91,6 +92,20 @@ public sealed class TcpServer : TcpBase, IDisposable {
         Socket = null;
 
         Logger.LogInformation("{Source} Server was stopped. {Endpoint}", this, EndPoint);
+
+    }
+
+    public void On<T>(string identifier, ServerEventDelegate<T> handler) {
+        On(identifier, handler);
+    }
+
+    public void On<T>(string identifier, ServerEventDelegateAsync<T> handler) {
+        On(identifier, handler);
+    }
+
+    private void On<T>(string identifier, Delegate handler) {
+
+        EventEmitter.On<T>(identifier, handler);
 
     }
 
@@ -174,7 +189,14 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
             while(!token.IsCancellationRequested) {
 
+                var result = await connection.DuplexPipe.Input.ReadAsync(token);
+                var position = ParseFrame(connection, ref frame, ref result);
 
+                connection.DuplexPipe.Input.AdvanceTo(position);
+
+                if(result.IsCanceled || result.IsCompleted) {
+                    break;
+                }
 
             }
 
@@ -194,6 +216,58 @@ public sealed class TcpServer : TcpBase, IDisposable {
             await connection.DisposeAsync();
 
             OnDisconnect?.Invoke(connection);
+
+        }
+
+    }
+
+    private SequencePosition ParseFrame(TcpServerConnection connection, ref ITcpFrame frame, ref ReadResult result) {
+
+        var buffer = result.Buffer;
+
+        if (buffer.Length == 0) {
+            return buffer.Start;
+        }
+
+        if(connection.IsHandshaked) {
+
+            var endPosition = frame.Read(ref buffer);
+
+            if (frame.Identifier != null) {
+
+                EventEmitter.ServerEmit(frame.Identifier, frame, connection);
+
+                frame.Dispose(); // just disposes internal variables, no need to worry
+                frame = Options.FrameFactory.Create();
+
+            }
+
+            return endPosition;
+
+        } else if(Options.Handshaker.Handshake(connection, ref buffer, out var headerPosition)) {
+
+            connection.IsHandshaked = true;
+            InsertNewConnection(connection);
+
+            OnConnect?.Invoke(connection);
+
+            return headerPosition;
+
+        } else if(buffer.Length > Options.MaxHandshakeSizeBytes) {
+
+            throw new Exception($"Handshake not valid and exceeded {nameof(Options.MaxHandshakeSizeBytes)}.");
+
+        }
+
+        return buffer.End;
+
+    }
+
+    private void InsertNewConnection(TcpServerConnection connection) {
+
+        while(!_Connections.TryAdd(connection.UniqueId, connection)) {
+
+            connection.UniqueId = RandomUtils.RandomString(TcpConstants.UniqueIdLength);
 
         }
 

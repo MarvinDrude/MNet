@@ -1,5 +1,4 @@
 ﻿
-
 namespace MNet.Tcp;
 
 public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
@@ -7,8 +6,9 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
     public required Socket Socket { get; init; }
     public required IDuplexPipe DuplexPipe { get; init; }
     public required TcpServer Server { get; init; }
-    public required string UniqueId { get; init; }
+    public required string UniqueId { get; set; }
     public Stream? Stream { get; init; }
+    public bool IsHandshaked { get; set; } = false;
 
     public Channel<ITcpFrame> OutgoingFramesQueue { get; private set; } = Channel.CreateUnbounded<ITcpFrame>();
 
@@ -16,7 +16,13 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
 
     public void Send<T>(string identifier, T payload) where T : class {
 
+        if(identifier.StartsWith(TcpConstants.StartSequenceSerialize)) {
+            throw new ArgumentOutOfRangeException("Send identifier invalid.");
+        }
+
         using var frame = Server.Options.FrameFactory.Create(); // dispose is ok here for sending
+
+        frame.Identifier = TcpConstants.StartSequenceSerialize + identifier;
 
         frame.IsRawOnly = false;
         frame.IsSending = true;
@@ -28,7 +34,13 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
 
     public void Send(string identifier, Memory<byte> payload) {
 
+        if (identifier.StartsWith(TcpConstants.StartSequenceSerialize)) {
+            throw new ArgumentOutOfRangeException("Send identifier invalid.");
+        }
+
         using var frame = Server.Options.FrameFactory.Create(); // dispose is ok here for sending
+
+        frame.Identifier = identifier;
 
         frame.IsRawOnly = false;
         frame.IsSending = true;
