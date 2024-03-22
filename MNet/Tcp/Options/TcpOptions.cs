@@ -43,6 +43,11 @@ public class TcpOptions {
     public ITcpSerializer Serializer { get; set; } = new TcpJsonSerializer();
 
     /// <summary>
+    /// Frame factory, default is simple | len - id - len - body frame |
+    /// </summary>
+    public ITcpFrameFactory FrameFactory { get; set; } = new TcpFrameFactory();
+
+    /// <summary>
     /// Optionally set your own logger or get the default one
     /// </summary>
     public Microsoft.Extensions.Logging.ILogger? Logger { get; set; } = DefaultLoggerFactory.CreateLogger("TcpLogging");
