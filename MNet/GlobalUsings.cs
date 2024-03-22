@@ -14,9 +14,16 @@ global using System.IO.Pipelines;
 global using System.Buffers.Binary;
 global using System.Security.Cryptography;
 global using System.Security.Cryptography.X509Certificates;
+global using System.Runtime.CompilerServices;
 
 global using Microsoft.Extensions.Logging;
 
 global using MNet.Tcp;
 global using MNet.Extensions;
 global using MNet.Helpers;
+global using MNet.Internal;
+global using MNet.Tcp.Interfaces;
+global using MNet.Tcp.Serializers;
+global using MNet.Internal.Factories;
+global using MNet.Tcp.Options;
+global using MNet.Internal.Settings;

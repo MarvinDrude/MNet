@@ -14,3 +14,7 @@ var debugLoggerFactory = new LoggerFactory([], new LoggerFilterOptions() {
 .AddSerilog(debugSerilogLogger);
 
 
+
+while(true) {
+    await Task.Delay(100);
+}

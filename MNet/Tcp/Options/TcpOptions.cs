@@ -37,7 +37,10 @@ public class TcpOptions {
 
     public StreamConnectionOptions StreamConnectionOptions { get; set; } = new();
 
-
+    /// <summary>
+    /// Serializer for object sending, default is the tcp json serializer
+    /// </summary>
+    public ITcpSerializer Serializer { get; set; } = new TcpJsonSerializer();
 
     /// <summary>
     /// Optionally set your own logger or get the default one
