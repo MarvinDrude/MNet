@@ -26,7 +26,8 @@ var server = new TcpServer(new TcpServerOptions() {
 
 server.Start();
 server.Stop();
+server.Start();
 
-while(true) {
+while (true) {
     await Task.Delay(100);
 }

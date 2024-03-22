@@ -17,14 +17,18 @@ public interface ITcpFrame : IDisposable {
     /// </summary>
     public bool IsSending { get; set; }
 
+    public int GetBinarySize();
+
     /// <summary>
     /// While reading a incomming frame, the moment you set the <see cref="Identifier"/> something other than <see langword="null"/>, the frame will be 
     /// queued for consumption and a new reading starts from 0
     /// </summary>
     public SequencePosition Read(ref ReadOnlySequence<byte> buffer);
 
-    public Memory<byte> GetMemory();
-
-    public Span<byte> GetSpan();
+    /// <summary>
+    /// Buffer will be the size of <see cref="GetBinarySize"/>
+    /// </summary>
+    /// <param name="buffer"></param>
+    public void Write(ref Span<byte> buffer);
 
 }

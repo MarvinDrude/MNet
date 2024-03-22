@@ -11,12 +11,16 @@ public sealed class TcpFrame : ITcpFrame {
 
     public bool IsSending { get; set; } = false;
 
-    public Memory<byte> GetMemory() {
-        throw new NotImplementedException();
+    public int GetBinarySize() {
+
+        return Data.Length;
+
     }
 
-    public Span<byte> GetSpan() {
-        throw new NotImplementedException();
+    public void Write(ref Span<byte> buffer) {
+
+
+
     }
 
     public SequencePosition Read(ref ReadOnlySequence<byte> buffer) {
