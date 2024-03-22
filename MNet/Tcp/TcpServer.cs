@@ -5,9 +5,6 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
     public TcpServerOptions Options { get; private set; }
 
-    public ILogger Logger { get; private set; }
-    public TcpUnderlyingConnectionType ConnectionType { get; private set; }
-
     public int ConnectionCount {
         get {
             return _Connections.Count;
@@ -19,10 +16,6 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
     public delegate void DisconnectHandler(TcpServerConnection connection);
     public event DisconnectHandler? OnDisconnect;
-
-    private IConnectionFactory ConnectionFactory { get; set; } = default!;
-    private CancellationTokenSource? RunTokenSource { get; set; }
-    private EventEmitter EventEmitter { get; set; }
 
     private readonly ConcurrentDictionary<string, TcpServerConnection> _Connections;
 
