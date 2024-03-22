@@ -1,11 +1,10 @@
 ﻿
-
-
 namespace MNet.Internal.Factories;
 
-internal class ConnectionFactory<TOptions, TSettings> : IDisposable
+internal abstract class ConnectionFactory<TOptions, TSettings, TConnection> : IDisposable
     where TOptions : ConnectionOptions
-    where TSettings : ConnectionQueueSettings {
+    where TSettings : ConnectionQueueSettings
+    where TConnection : IDuplexPipe {
 
     protected readonly TOptions _Options;
 
@@ -13,7 +12,9 @@ internal class ConnectionFactory<TOptions, TSettings> : IDisposable
 
     protected readonly TSettings[] _Settings;
 
-    protected readonly long _SettingsIndex;
+    protected long _SettingsIndex;
+
+    private bool _AlreadyDisposed = false;
 
     public ConnectionFactory(TOptions options) {
 
@@ -26,16 +27,39 @@ internal class ConnectionFactory<TOptions, TSettings> : IDisposable
         
     }
 
-    private void InitSettings() {
+    public TConnection Create(Socket socket, Stream? stream) {
 
-        var maxReadBufferSize = _Options.MaxReadBufferSize ?? 0;
-        var maxWriteBufferSize = _Options.MaxWriteBufferSize ?? 0;
+        var setting = _Settings[Interlocked.Increment(ref _SettingsIndex) % _SettingsCount];
+
+        return CreateConnection(socket, stream, setting);
+
+    }
+
+    protected abstract TConnection CreateConnection(Socket socket, Stream? stream, TSettings settings);
+
+    private void InitSettings() {
 
         for(int e = 0; e < _SettingsCount; e++) {
 
-
+            _Settings[e] = Unsafe.As<TSettings>(_Options.CreateQueueSettings());
 
         }
+
+    }
+
+    public void Dispose() {
+
+        if(_AlreadyDisposed) {
+            return;
+        }
+
+        foreach (var setting in _Settings) {
+
+            setting?.Dispose();
+
+        }
+
+        _AlreadyDisposed = true;
 
     }
 
