@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MNet.Tcp.Options;
 using MNet.Tcp;
+using MNet.Helpers;
 
 namespace MNet.Testing;
 
@@ -51,7 +52,12 @@ internal class BasicUsage {
         client.OnConnect += () => {
 
             client.Send("test-class", new Test() { A = "WHOOP" });
-            client.Send("test-bytes", new Memory<byte>([0, 2, 3]));
+
+            Memory<byte> random = new byte[1024 * 1024 * 30];
+            var span = random.Span;
+            RandomUtils.RandomBytes(ref span);
+
+            client.Send("test-bytes", random);
 
         };
 

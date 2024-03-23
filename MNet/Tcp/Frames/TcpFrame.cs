@@ -60,6 +60,9 @@ public sealed class TcpFrame : ITcpFrame {
             if (!ReadLengthDataBuffer(ref reader, ref buffer, out position, out _LengthData)) {
                 return position;
             }
+            if(_LengthData > TcpConstants.MaxFrameDataLength) {
+                throw new ArgumentOutOfRangeException(nameof(_LengthData));
+            }
             _Steps = 3;
         }
 
@@ -89,9 +92,9 @@ public sealed class TcpFrame : ITcpFrame {
                 Data = _Data = new byte[_LengthData];
             } else {
                 _DataOwner = MemoryPool<byte>.Shared.Rent(targetSize);
-                MemoryMarshal.AsBytes(_DataOwner.Memory.Span).Clear();
 
                 _Data = _DataOwner.Memory[..targetSize];
+                //_Data = new byte[targetSize];
             }
 
             reader.TryCopyTo(_Data.Span);
@@ -124,9 +127,9 @@ public sealed class TcpFrame : ITcpFrame {
             } else {
 
                 _DataOwnerTemp = MemoryPool<byte>.Shared.Rent(targetSize + _Data.Length);
-                MemoryMarshal.AsBytes(_DataOwnerTemp.Memory.Span).Clear();
 
                 var memory = _DataOwnerTemp.Memory.Slice(0, targetSize + _Data.Length);
+                //Memory<byte> memory = new byte[targetSize + _Data.Length];
 
                 _Data.CopyTo(memory.Slice(0, _Data.Length));
 
