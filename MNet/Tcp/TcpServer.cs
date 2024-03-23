@@ -97,9 +97,7 @@ public sealed class TcpServer : TcpBase, IDisposable {
     }
 
     private void InternalOn<T>(string identifier, Delegate handler) {
-
         EventEmitter.On<T>(identifier, handler);
-
     }
 
     private async Task DoAccept(CancellationToken token) {

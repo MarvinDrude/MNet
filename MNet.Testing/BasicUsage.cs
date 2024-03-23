@@ -22,13 +22,20 @@ internal class BasicUsage {
 
         });
 
-        server.On<Test>("test-bytes", (message, connection) => {
+        server.On<Test>("test-class", (message, connection) => {
 
             if (message == null) return;
 
             Console.WriteLine("A: " + message.A);
 
         });
+
+        server.OnConnect += (connection) => {
+
+            connection.Send("test-class", new Test() { A = "WHOOP-Server" });
+            connection.Send("test-bytes", new Memory<byte>([0, 2, 3, 5]));
+
+        };
 
         server.Start();
         server.Stop();
@@ -43,9 +50,24 @@ internal class BasicUsage {
 
         client.OnConnect += () => {
 
-            Console.WriteLine("Connected client.");
+            client.Send("test-class", new Test() { A = "WHOOP" });
+            client.Send("test-bytes", new Memory<byte>([0, 2, 3]));
 
         };
+
+        client.On<ReadOnlyMemory<byte>>("test-bytes", (buffer) => {
+
+            Console.WriteLine("Length: " + buffer.Length);
+
+        });
+
+        client.On<Test>("test-class", (message) => {
+
+            if (message == null) return;
+
+            Console.WriteLine("A: " + message.A);
+
+        });
 
         client.Connect();
 

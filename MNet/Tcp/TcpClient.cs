@@ -87,8 +87,21 @@ public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
         }
 
+        OnDisconnect?.Invoke();
         Logger.LogInformation("{Source} Tcp client disconnected. {Endpoint}", this, EndPoint);
 
+    }
+
+    public void On<T>(string identifier, EventDelegate<T> handler) {
+        InternalOn<T>(identifier, handler);
+    }
+
+    public void On<T>(string identifier, EventDelegateAsync<T> handler) {
+        InternalOn<T>(identifier, handler);
+    }
+
+    private void InternalOn<T>(string identifier, Delegate handler) {
+        EventEmitter.On<T>(identifier, handler);
     }
 
     public void Send<T>(string identifier, T payload) where T : class {
