@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Helpers;
 
-internal static class RandomUtils {
+public static class RandomUtils {
 
     public static string RandomString(int length) {
 
