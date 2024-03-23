@@ -74,7 +74,28 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
             return;
         }
 
+        try {
 
+            if(DuplexPipe != null && DuplexPipe is SocketConnection socketConnection) {
+
+                await socketConnection.DisposeAsync(); // does the socket dispose itself 
+
+            } else {
+
+                try {
+
+                    Socket?.Shutdown(SocketShutdown.Both);
+
+                } catch (Exception) {
+                }
+
+                Stream?.Dispose();
+                Socket?.Dispose();
+
+            }
+
+        } catch(Exception) {
+        }
 
         _Disposed = true;
 

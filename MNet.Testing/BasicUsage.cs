@@ -43,8 +43,11 @@ internal class BasicUsage {
 
         client.OnConnect += () => {
 
+            Console.WriteLine("Connected client.");
+
         };
 
+        client.Connect();
 
     }
 

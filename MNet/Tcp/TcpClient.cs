@@ -14,6 +14,8 @@ public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
     private bool IsHandshaked { get; set; }
     private Channel<ITcpFrame> OutgoingFramesQueue { get; set; } = Channel.CreateUnbounded<ITcpFrame>();
+    private IDuplexPipe? DuplexPipe { get; set; }
+    private Stream? Stream { get; set; }
 
     public TcpClient(TcpClientOptions options) {
 
@@ -28,9 +30,64 @@ public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
         Options = options;
         Logger = Options.Logger;
 
-
+        EndPoint = new IPEndPoint(address, options.Port);
+        EventEmitter = new EventEmitter(Options.Serializer);
 
         InitFactory();
+
+    }
+
+    public void Connect() {
+
+        if (RunTokenSource != null) {
+            return;
+        }
+
+        Logger.LogDebug("{Source} Connecting the tcp client...", this);
+
+        IsHandshaked = false;
+        OutgoingFramesQueue = Channel.CreateUnbounded<ITcpFrame>();
+
+        RunTokenSource = new CancellationTokenSource();
+        var _ = DoConnect(RunTokenSource.Token);
+
+    }
+
+    public async Task Disconnect() {
+
+        if (RunTokenSource == null) {
+            return;
+        }
+
+        Logger.LogDebug("{Source} Disconnecting the tcp client...", this);
+
+        IsHandshaked = false;
+
+        RunTokenSource?.Cancel();
+        RunTokenSource?.Dispose();
+
+        OutgoingFramesQueue?.Writer.Complete();
+        RunTokenSource = null;
+
+        if (DuplexPipe != null && DuplexPipe is SocketConnection conn) {
+
+            await conn.DisposeAsync();
+
+        } else {
+
+            try {
+
+                Socket?.Shutdown(SocketShutdown.Both);
+
+            } catch (Exception) {
+            }
+
+            Stream?.Dispose();
+            Socket?.Dispose();
+
+        }
+
+        Logger.LogInformation("{Source} Tcp client disconnected. {Endpoint}", this, EndPoint);
 
     }
 
@@ -92,6 +149,185 @@ public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
     }
 
+    private async Task DoConnect(CancellationToken token) {
+
+        while(!token.IsCancellationRequested) {
+
+            try {
+
+                Socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                Socket.NoDelay = true;
+
+                Socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+
+                await Socket.ConnectAsync(EndPoint);
+
+                if(ConnectionType == TcpUnderlyingConnectionType.FastSocket) {
+
+                    DuplexPipe = ConnectionFactory.Create(Socket, null);
+
+                } else {
+
+                    Stream = await GetStream(Socket);
+                    DuplexPipe = ConnectionFactory.Create(Socket, Stream);
+
+                }
+
+                var _ = DoReceive(token);
+                _ = DoSend(token);
+
+                Logger.LogInformation("{Source} Tcp client connected. {Endpoint}", this, EndPoint);
+                return; // exit this connecting loop
+
+            } catch(Exception) {
+
+
+
+            }
+
+            await Task.Delay(Options.ReconnectInterval);
+
+        }
+
+    }
+
+    private async Task DoReceive(CancellationToken token) {
+
+        var frame = Options.FrameFactory.Create();
+
+        try {
+
+            if (Options.Handshaker.StartHandshake(this)) {
+
+                Logger.LogDebug("{Source} handshaked successfully", this);
+                IsHandshaked = true;
+                OnConnect?.Invoke();
+
+            }
+
+            while (!token.IsCancellationRequested
+                && DuplexPipe != null) {
+
+                var result = await DuplexPipe.Input.ReadAsync(token);
+                var position = ParseFrame(ref frame, ref result);
+
+                DuplexPipe.Input.AdvanceTo(position);
+
+                if (result.IsCanceled || result.IsCompleted) {
+                    break;
+                }
+
+            }
+
+        } catch (Exception) {
+
+        } finally {
+
+            frame?.Dispose();
+            await Disconnect();
+
+        }
+
+    }
+
+    private SequencePosition ParseFrame(ref ITcpFrame frame, ref ReadResult result) {
+
+        var buffer = result.Buffer;
+
+        if (buffer.Length == 0) {
+            return buffer.Start;
+        }
+
+        if(IsHandshaked) {
+
+            var endPosition = frame.Read(ref buffer);
+
+            if (frame.Identifier != null) {
+
+                EventEmitter.Emit(frame.Identifier, frame);
+
+                frame.Dispose(); // just disposes internal variables, no need to worry
+                frame = Options.FrameFactory.Create();
+
+            }
+
+            return endPosition;
+
+        } else if (Options.Handshaker.Handshake(this, ref buffer, out var headerPosition)) {
+
+            Logger.LogDebug("{Source} handshaked successfully", this);
+
+            IsHandshaked = true;
+            OnConnect?.Invoke();
+
+            return headerPosition;
+
+        } else if (buffer.Length > Options.MaxHandshakeSizeBytes) {
+
+            throw new Exception($"Handshake not valid and exceeded {nameof(Options.MaxHandshakeSizeBytes)}.");
+
+        }
+
+        return buffer.End;
+
+    }
+
+    private async Task DoSend(CancellationToken token) {
+
+        while(!token.IsCancellationRequested && DuplexPipe != null
+            && await OutgoingFramesQueue.Reader.WaitToReadAsync(token)) {
+
+            try {
+
+                var frame = await OutgoingFramesQueue.Reader.ReadAsync(token);
+
+                if (frame.Data.Length == 0) {
+                    continue;
+                }
+
+                if (frame.IsRawOnly) {
+
+                    await DuplexPipe.Output.WriteAsync(frame.Data, token); // flushes automatically
+
+                } else {
+
+                    SendFrame(frame);
+                    await DuplexPipe.Output.FlushAsync(token); // not flushed inside frame
+
+                }
+
+            } catch (Exception) {
+
+            }
+
+        }
+
+    }
+
+    private void SendFrame(ITcpFrame frame) {
+
+        int binarySize = frame.GetBinarySize();
+
+        if (binarySize <= TcpConstants.SafeStackBufferSize) {
+
+            Span<byte> span = stackalloc byte[binarySize];
+            frame.Write(ref span);
+
+            DuplexPipe!.Output.Write(span);
+
+        } else {
+
+            using var memoryOwner = MemoryPool<byte>.Shared.Rent(binarySize); // gives back memory at end of scope
+            Span<byte> span = memoryOwner.Memory.Span[..binarySize]; // rent memory can be bigger, clamp it
+
+            frame.Write(ref span);
+
+            DuplexPipe!.Output.Write(span);
+
+        }
+
+    }
+
     private void InitFactory() {
 
         TcpUnderlyingConnectionType type = TcpUnderlyingConnectionType.NetworkStream;
@@ -139,9 +375,45 @@ public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
     }
 
+    private async Task<Stream?> GetStream(Socket socket) {
+
+        NetworkStream stream = new(socket);
+
+        if (ConnectionType == TcpUnderlyingConnectionType.NetworkStream) {
+            return stream;
+        }
+
+        SslStream? sslStream = null;
+
+        try {
+
+            sslStream = new SslStream(stream, false);
+
+            var task = sslStream.AuthenticateAsClientAsync(Options.Host!);
+            await task.WaitAsync(TimeSpan.FromSeconds(60));
+
+            return sslStream;
+
+        } catch (Exception err) {
+
+            sslStream?.Dispose();
+
+            if (err is TimeoutException) {
+                Logger.LogDebug("{Source} Ssl handshake timeouted.", this);
+            }
+
+            Logger.LogDebug("{Source} Certification fail get stream. {Error}", this, err);
+            return null;
+
+        }
+
+    }
+
     public async ValueTask DisposeAsync() {
 
+        ConnectionFactory?.Dispose();
 
+        await Disconnect();
 
     }
 }

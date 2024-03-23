@@ -1,7 +1,8 @@
 ﻿
+
 namespace MNet.Internal;
 
-internal sealed class SocketConnection : IDuplexPipe {
+internal sealed class SocketConnection : IDuplexPipe, IAsyncDisposable {
 
     public PipeReader Input {
         get {
@@ -35,6 +36,12 @@ internal sealed class SocketConnection : IDuplexPipe {
 
         _Input = _ReceiveSocket.Reader;
         _Output = _SendSocket.Writer;
+
+    }
+
+    public async ValueTask DisposeAsync() {
+
+
 
     }
 

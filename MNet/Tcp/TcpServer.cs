@@ -109,6 +109,8 @@ public sealed class TcpServer : TcpBase, IDisposable {
             var connection = await Accept(token);
             if (connection == null) return;
 
+            Logger.LogDebug("{Source} New connection {identifier}", this, connection.UniqueId);
+
             var _ = DoReceive(connection, token);
             _ = DoSend(connection, token);
 
@@ -242,6 +244,7 @@ public sealed class TcpServer : TcpBase, IDisposable {
             connection.IsHandshaked = true;
             InsertNewConnection(connection);
 
+            Logger.LogDebug("{Source} New connection handshaked {identifier}", this, connection.UniqueId);
             OnConnect?.Invoke(connection);
 
             return headerPosition;
@@ -268,30 +271,37 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
     private async Task DoSend(TcpServerConnection connection, CancellationToken token) {
 
-        while(!token.IsCancellationRequested && await connection.OutgoingFramesQueue.Reader.WaitToReadAsync()) {
+        try {
 
-            try {
+            while (!token.IsCancellationRequested
+                && await connection.OutgoingFramesQueue.Reader.WaitToReadAsync(token)) {
 
-                var frame = await connection.OutgoingFramesQueue.Reader.ReadAsync(token);
+                try {
 
-                if (frame.Data.Length == 0) {
-                    continue;
+                    var frame = await connection.OutgoingFramesQueue.Reader.ReadAsync(token);
+
+                    if (frame.Data.Length == 0) {
+                        continue;
+                    }
+
+                    if (frame.IsRawOnly) {
+
+                        await connection.DuplexPipe.Output.WriteAsync(frame.Data, token); // flushes automatically
+
+                    } else {
+
+                        SendFrame(connection, frame);
+                        await connection.DuplexPipe.Output.FlushAsync(token); // not flushed inside frame
+
+                    }
+
+                } catch (Exception) {
+
                 }
-
-                if (frame.IsRawOnly) {
-
-                    await connection.DuplexPipe.Output.WriteAsync(frame.Data, token); // flushes automatically
-
-                } else {
-
-                    SendFrame(connection, frame);
-                    await connection.DuplexPipe.Output.FlushAsync(token); // not flushed inside frame
-
-                }
-
-            } catch(Exception) {
 
             }
+
+        } catch(Exception) {
 
         }
 
@@ -408,7 +418,7 @@ public sealed class TcpServer : TcpBase, IDisposable {
             sslStream = new SslStream(stream, false);
 
             var task = sslStream.AuthenticateAsServerAsync(Options.Certificate!, false, SslProtocols.None, true);
-            await task.WaitAsync(TimeSpan.FromSeconds(60));
+            await task.WaitAsync(TimeSpan.FromSeconds(30));
 
             return sslStream;
 
