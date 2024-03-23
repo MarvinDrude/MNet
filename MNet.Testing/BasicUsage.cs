@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using MNet.Tcp.Options;
 using MNet.Tcp;
 using MNet.Helpers;
+using MNet.Tcp.Serializers;
+using MNet.Tcp.Handshakers;
 
 namespace MNet.Testing;
 
@@ -11,10 +13,11 @@ internal class BasicUsage {
     public static void Run(ILogger debugLogger) {
 
         var server = new TcpServer(new TcpServerOptions() {
-            Address = "127.0.0.1",
+            Address = "127.0.0.1", 
             Port = 43434,
-            Logger = debugLogger,
-            ConnectionType = TcpUnderlyingConnectionType.NetworkStream
+            Logger = debugLogger, // ILogger of your liking, default is just console one
+            Serializer = new TcpJsonSerializer(), // by default TcpJsonSerializer, you can implement your own serializers with ITcpSerializer
+            Handshaker = new TcpServerHandshaker(), // by default no handshaking, if you need handshaking implement a ITcpServerHandshaker
         });
 
         server.On<ReadOnlyMemory<byte>>("test-bytes", (buffer, connection) => {
@@ -33,8 +36,16 @@ internal class BasicUsage {
 
         server.OnConnect += (connection) => {
 
+            debugLogger.LogInformation("Connected {Count}", server.ConnectionCount);
+
             connection.Send("test-class", new Test() { A = "WHOOP-Server" });
             connection.Send("test-bytes", new Memory<byte>([0, 2, 3, 5]));
+
+        };
+
+        server.OnDisconnect += (connection) => {
+
+            debugLogger.LogInformation("Disconnected {Count}", server.ConnectionCount);
 
         };
 
@@ -45,8 +56,9 @@ internal class BasicUsage {
         var client = new TcpClient(new TcpClientOptions() {
             Address = "127.0.0.1",
             Port = 43434,
-            Logger = debugLogger,
-            ConnectionType = TcpUnderlyingConnectionType.NetworkStream
+            Logger = debugLogger, // ILogger of your liking, default is just console one
+            Serializer = new TcpJsonSerializer(), // by default TcpJsonSerializer, you can implement your own serializers with ITcpSerializer
+            Handshaker = new TcpClientHandshaker(), // by default no handshaking, if you need handshaking implement a ITcpClientHandshaker
         });
 
         client.OnConnect += () => {
@@ -58,6 +70,12 @@ internal class BasicUsage {
             RandomUtils.RandomBytes(ref span);
 
             client.Send("test-bytes", random);
+
+        };
+
+        client.OnDisconnect += () => {
+
+            Console.WriteLine("Client connect");
 
         };
 

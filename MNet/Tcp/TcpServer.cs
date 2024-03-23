@@ -88,6 +88,26 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
     }
 
+    public void Broadcast<T>(string uid, T payload) where T : class {
+
+        foreach(var connection in _Connections.Values) {
+
+            connection.Send(uid, payload);
+
+        }
+
+    }
+
+    public void Broadcast(string uid, Memory<byte> payload) {
+
+        foreach (var connection in _Connections.Values) {
+
+            connection.Send(uid, payload);
+
+        }
+
+    }
+
     public void On<T>(string identifier, ServerEventDelegate<T> handler) {
         InternalOn<T>(identifier, handler);
     }
@@ -199,16 +219,14 @@ public sealed class TcpServer : TcpBase, IDisposable {
 
         } finally {
 
-            // disconnection
-
-            if (connection.UniqueId != null) {
-                _Connections.TryRemove(connection.UniqueId, out _);
-            }
+            // disconnect
 
             frame?.Dispose();
             await connection.DisposeAsync();
 
-            OnDisconnect?.Invoke(connection);
+            if (connection.UniqueId != null && _Connections.TryRemove(connection.UniqueId, out _)) {
+                OnDisconnect?.Invoke(connection);
+            }
 
         }
 
