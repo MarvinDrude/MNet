@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Tcp.Options;
 
-public sealed class TcpServerOptions : TcpOptions {
+public class TcpServerOptions : TcpOptions {
 
     /// <summary>
     /// Needed if secure is enabled

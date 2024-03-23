@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Tcp.Options;
 
-public sealed class TcpClientOptions : TcpOptions {
+public class TcpClientOptions : TcpOptions {
 
     /// <summary>
     /// Needed for secure authentication
