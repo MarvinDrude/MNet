@@ -1,7 +1,7 @@
 ﻿
 namespace MNet.Tcp;
 
-public sealed class TcpServer : TcpBase, IDisposable {
+public class TcpServer : TcpBase, IDisposable {
 
     public TcpServerOptions Options { get; private set; }
 

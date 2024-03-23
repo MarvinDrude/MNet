@@ -3,6 +3,12 @@ namespace MNet.Helpers;
 
 public static class RandomUtils {
 
+    public static string CreateWebsocketBase64Key() {
+
+        return RandomString(16);
+
+    }
+
     public static string RandomString(int length) {
 
         Span<byte> buffer = length > 1028 

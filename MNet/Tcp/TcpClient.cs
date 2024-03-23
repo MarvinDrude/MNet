@@ -2,7 +2,7 @@
 
 namespace MNet.Tcp;
 
-public sealed class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
+public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
     public TcpClientOptions Options { get; private set; }
 
