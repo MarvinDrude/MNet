@@ -17,7 +17,7 @@ var debugLogger = debugLoggerFactory.CreateLogger("TcpLogging");
 
 //BasicUsage.Run(debugLogger);
 //await PerformanceTestJson.Run(debugLogger, TcpUnderlyingConnectionType.NetworkStream);
-await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.NetworkStream);
+await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
 
 while (true) {
     await Task.Delay(100);

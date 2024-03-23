@@ -16,6 +16,7 @@ internal static class PerformanceTestBinary {
             Address = "127.0.0.1",
             Port = 30300,
             ConnectionType = type,
+            Logger = debugLogger,
         });
 
         server.On<ReadOnlyMemory<byte>>("math", (buffer, conn) => {
@@ -71,7 +72,8 @@ class PerformanceTestBinaryWorker {
         Client = new TcpClient(new TcpClientOptions() {
             Address = "127.0.0.1",
             Port = 30300,
-            ConnectionType = type
+            ConnectionType = type,
+            Logger = debugLogger,
         });
 
         Client.On<ReadOnlyMemory<byte>>("math", (res) => {
