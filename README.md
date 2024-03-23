@@ -1,4 +1,19 @@
 
+# MNet TCP Server/Client
+
+Just a small lightweight library for TCP Communication in .NET/C#. It utilizes some techniques from internal
+kestrel sockets for some performance benefits. Some notes on things used:
+
+
+## Remarks on used technologies
+
+- Uses some "stackalloc" and "MemoryPool<byte>.Shared" for less heap allocations
+- Usage of "System.IO.Pipelines" for better buffering
+- Custom schedulers for Tasks
+- Custom "PinnedBlockMemoryPool" from kestrel
+- Expression Compilation for better performance of events
+- For Secure Ssl falls back to SslStream under the hood, but still amazingly fast
+
 ## Simple Usage
 You should always first register all the event handlers before calling Server.Start/Client.Connect, in order for you to not miss any instant messages.
 
