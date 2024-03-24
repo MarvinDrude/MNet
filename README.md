@@ -1,6 +1,8 @@
 
 # MNet TCP Server/Client
 
+[NuGet](https://www.nuget.org/packages/MNet)
+
 Just a small lightweight library for TCP Communication in .NET/C#. It utilizes some techniques from internal
 kestrel sockets for some performance benefits. Some notes on things used:
 
