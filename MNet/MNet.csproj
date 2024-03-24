@@ -5,6 +5,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <Title>MNet</Title>
+        <Authors>Marvin Drude</Authors>
+        <Company>Marvin Drude</Company>
+        <Copyright>Marvin Drude</Copyright>
+        <Description>Simple and fast library for tcp server and client. Utilizes same techniques as internal kestrel servers to get best performance.</Description>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
 	<ItemGroup>

@@ -33,9 +33,9 @@ var noneLogger = noneLoggerFactory.CreateLogger("TcpLogging");
 
 //await PerformanceTestJson.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
 
-//await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
+await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
 
-ConnectTest.Run(debugLogger, noneLogger);
+//ConnectTest.Run(debugLogger, noneLogger);
 
 while (true) {
     await Task.Delay(100);
