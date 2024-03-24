@@ -195,14 +195,15 @@ public class TcpServer : TcpBase, IDisposable {
     private async Task DoReceive(TcpServerConnection connection, CancellationToken token) {
 
         var frame = Options.FrameFactory.Create();
+        var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(connection.DisconnectToken.Token, token);
 
         try {
 
             Options.Handshaker.StartHandshake(connection);
 
-            while(!token.IsCancellationRequested) {
+            while(!token.IsCancellationRequested && !connection.DisconnectToken.IsCancellationRequested) {
 
-                var result = await connection.DuplexPipe.Input.ReadAsync(token);
+                var result = await connection.DuplexPipe.Input.ReadAsync(combinedToken.Token);
                 var position = ParseFrame(connection, ref frame, ref result);
 
                 connection.DuplexPipe.Input.AdvanceTo(position);
@@ -223,6 +224,10 @@ public class TcpServer : TcpBase, IDisposable {
 
             frame?.Dispose();
             await connection.DisposeAsync();
+
+            try {
+                combinedToken?.Dispose();
+            } catch { }
 
             if (connection.UniqueId != null && _Connections.TryRemove(connection.UniqueId, out _)) {
                 OnDisconnect?.Invoke(connection);

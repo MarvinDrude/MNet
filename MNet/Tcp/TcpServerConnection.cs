@@ -9,6 +9,7 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
     public required string UniqueId { get; set; }
     public Stream? Stream { get; init; }
     public bool IsHandshaked { get; set; } = false;
+    public CancellationTokenSource DisconnectToken { get; private set; } = new CancellationTokenSource();
 
     public Channel<ITcpFrame> OutgoingFramesQueue { get; private set; } = Channel.CreateUnbounded<ITcpFrame>();
 
@@ -68,6 +69,12 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
 
     }
 
+    public void Disconnect() {
+
+        DisconnectToken.Cancel();
+
+    }
+
     public async ValueTask DisposeAsync() {
 
         if(_Disposed) {
@@ -93,6 +100,13 @@ public sealed class TcpServerConnection : IAsyncDisposable, ITcpSender {
                 Socket?.Dispose();
 
             }
+
+            OutgoingFramesQueue.Writer.TryComplete();
+
+            if(!DisconnectToken.IsCancellationRequested) {
+                DisconnectToken?.Cancel();
+            }
+            DisconnectToken?.Dispose();
 
         } catch(Exception) {
         }

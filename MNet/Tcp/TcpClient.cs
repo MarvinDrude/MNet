@@ -46,7 +46,7 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
         Logger.LogDebug("{Source} Connecting the tcp client...", this);
 
         IsHandshaked = false;
-        OutgoingFramesQueue = Channel.CreateUnbounded<ITcpFrame>();
+        //OutgoingFramesQueue = Channel.CreateUnbounded<ITcpFrame>();
 
         RunTokenSource = new CancellationTokenSource();
         var _ = DoConnect(RunTokenSource.Token);
@@ -63,10 +63,17 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
         IsHandshaked = false;
 
-        RunTokenSource?.Cancel();
-        RunTokenSource?.Dispose();
+        try {
+            RunTokenSource?.Cancel();
+            RunTokenSource?.Dispose();
+        } catch (Exception) { }
 
-        OutgoingFramesQueue?.Writer.Complete();
+        try {
+            if(OutgoingFramesQueue.Writer.TryComplete()) {
+
+            }
+        } catch(Exception) { }
+
         RunTokenSource = null;
 
         if (DuplexPipe != null && DuplexPipe is SocketConnection conn) {
@@ -89,6 +96,15 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
         OnDisconnect?.Invoke();
         Logger.LogInformation("{Source} Tcp client disconnected. {Endpoint}", this, EndPoint);
+
+    }
+
+    private async Task InternalDisconnect() {
+
+        await Disconnect();
+        await Task.Delay(Options.ReconnectInterval);
+
+        Connect();
 
     }
 
@@ -198,7 +214,7 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
 
             }
 
-            await Task.Delay(Options.ReconnectInterval);
+            await Task.Delay(Options.ReconnectInterval, token);
 
         }
 
@@ -237,7 +253,7 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
         } finally {
 
             frame?.Dispose();
-            await Disconnect();
+            await InternalDisconnect();
 
         }
 
