@@ -9,6 +9,8 @@ internal class WsBasicUsage {
 
     public static void Run(ILogger debugLogger) {
 
+        // ws implementation not ready yet
+
         var server = new WsServer(new WsServerOptions() {
             Address = "127.0.0.1",
             Port = 43434,
