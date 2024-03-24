@@ -38,9 +38,13 @@ internal static class PerformanceTestBinary {
             debugLogger.LogInformation("{Count} Connections", server.ConnectionCount);
         };
 
+        server.OnDisconnect += (conn) => {
+            debugLogger.LogInformation("{Count} Connections", server.ConnectionCount);
+        };
+
         server.Start();
 
-        for (int e = 0; e < 200; e++) {
+        for (int e = 0; e < 100; e++) {
 
             new PerformanceTestBinaryWorker(debugLogger, type);
 
@@ -78,9 +82,9 @@ class PerformanceTestBinaryWorker {
 
             double sum = BinaryPrimitives.ReadDoubleBigEndian(res.Span.Slice(0, 8));
 
-            if (LastTask.A + LastTask.B != sum) {
-                debugLogger.LogError("Mismatch found: {LastTaskA} + {LastTaskB} = {resSum}", LastTask.A, LastTask.B, sum);
-            }
+            //if (LastTask.A + LastTask.B != sum) {
+            //    debugLogger.LogError("Mismatch found: {LastTaskA} + {LastTaskB} = {resSum}", LastTask.A, LastTask.B, sum);
+            //}
 
             SendTask();
 

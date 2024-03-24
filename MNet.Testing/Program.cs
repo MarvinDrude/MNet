@@ -16,9 +16,16 @@ var debugLoggerFactory = new LoggerFactory([], new LoggerFilterOptions() {
 var debugLogger = debugLoggerFactory.CreateLogger("TcpLogging");
 
 //SecureUsage.Run(debugLogger);
+
 //BasicUsage.Run(debugLogger);
-await PerformanceTestJson.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
+
+WsBasicUsage.Run(debugLogger);
+
+//await PerformanceTestJson.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
+
 //await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
+
+
 
 while (true) {
     await Task.Delay(100);
