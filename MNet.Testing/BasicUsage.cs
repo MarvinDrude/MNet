@@ -103,4 +103,6 @@ class Test {
 
     public required string A { get; set; }
 
+    public string? B { get; set; }
+
 }
