@@ -27,7 +27,7 @@ var noneLogger = noneLoggerFactory.CreateLogger("TcpLogging");
 
 //SecureUsage.Run(debugLogger);
 
-BasicUsage.Run(debugLogger);
+//BasicUsage.Run(debugLogger);
 
 //WsBasicUsage.Run(debugLogger);
 
@@ -35,7 +35,7 @@ BasicUsage.Run(debugLogger);
 
 //await PerformanceTestBinary.Run(debugLogger, TcpUnderlyingConnectionType.FastSocket);
 
-//ConnectTest.Run(debugLogger, noneLogger);
+ConnectTest.Run(debugLogger, noneLogger);
 
 //await RandomTest.Run(debugLogger);
 

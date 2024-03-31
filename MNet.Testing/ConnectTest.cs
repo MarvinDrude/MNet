@@ -21,7 +21,7 @@ internal class ConnectTest {
         server.OnConnect += async (connection) => {
 
             debugLogger.LogInformation("Connected {Count}", server.ConnectionCount);
-            await Task.Delay(300);
+            await Task.Delay(600);
 
             connection.Disconnect();
 
@@ -46,8 +46,8 @@ internal class ConnectTest {
 
             client.OnConnect += async () => {
 
-                client.Send("test", new Memory<byte>([2]));
                 debugLogger.LogInformation("Client connect");
+                client.Send("test", new Memory<byte>([2, 4, 5]));
 
             };
 

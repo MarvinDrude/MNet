@@ -46,7 +46,7 @@ public class TcpClient : TcpBase, IAsyncDisposable, ITcpSender {
         Logger.LogDebug("{Source} Connecting the tcp client...", this);
 
         IsHandshaked = false;
-        //OutgoingFramesQueue = Channel.CreateUnbounded<ITcpFrame>();
+        OutgoingFramesQueue = Channel.CreateUnbounded<ITcpFrame>();
 
         RunTokenSource = new CancellationTokenSource();
         var _ = DoConnect(RunTokenSource.Token);
